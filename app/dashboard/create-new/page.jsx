@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import SelectTopic from './_components/SelectTopic'
 import SelectStyle from './_components/SelectStyle';
 import SelectDuration from './_components/SelectDuration';
+import { Button } from '@/components/ui/button';
 
 function CreateNew() {
 
@@ -30,6 +31,8 @@ function CreateNew() {
              {/*Duration*/}
              <SelectDuration onUserSelect={onHandleInputChange}/>
               {/*Create Button*/}
+
+              <Button className='mt-10 w-full'>Create Short Video</Button>
         </div>
     </div>
   )
