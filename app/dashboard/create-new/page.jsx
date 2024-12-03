@@ -19,6 +19,8 @@ function CreateNew() {
      }))
 
     }
+
+    
   return (
     <div className='md:px-20'>
         <h2 className='font-bold text-4xl text-primary text-center'>Create New</h2>
