@@ -5,6 +5,7 @@ import SelectStyle from "./_components/SelectStyle";
 import SelectDuration from "./_components/SelectDuration";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
+import CustomLoading from "./_components/CustomLoading";
 
 function CreateNew() {
   const [formData, setFormData] = useState({});
@@ -53,6 +54,7 @@ function CreateNew() {
           Create Short Video
         </Button>
       </div>
+      <CustomLoading loading={true}/>
     </div>
   );
 }
