@@ -6,6 +6,10 @@ import SelectDuration from "./_components/SelectDuration";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import CustomLoading from "./_components/CustomLoading";
+import { v4 as uuidv4 } from 'uuid';
+
+const scriptData='It was a cold, dark night. The wind howled through the trees, sending shivers down the spines of those brave enough to venture outside. The leaves rustled in chaotic whispers, as if carrying secrets from the depths of the unknown.A lone figure walked cautiously along the deserted path, each step crunching against the frosted ground. Shadows danced under the pale moonlight, creating shapes that seemed almost alive.In the distance, the faint sound of a bell echoed, its eerie chime a reminder of something lost—or perhaps, something yet to come.'
+
 
 function CreateNew() {
   const [formData, setFormData] = useState({});
@@ -27,7 +31,9 @@ function CreateNew() {
       console.error("Please fill all the fields.");
       return;
     }
-    GetVideoScript();
+    //  GetVideoScript();
+     GenerateAudioFile(scriptData);
+    
   };
 
   const GetVideoScript = async () => {
@@ -37,12 +43,38 @@ function CreateNew() {
     
       const result = await axios.post("/api/get-video-script", { 
         prompt }).then(resp  => {
-      console.log(resp.data.result); 
+      
       setVideoScript(resp.data.result)
+      GenerateAudioFile(resp.data.result);
     
         });
     setLoading(false);
   };
+
+  const GenerateAudioFile = async (videoScriptData)   => {
+    setLoading(true)
+    let script ='';
+
+    const id = uuidv4()
+    // videoScriptData.forEach(item => {
+    //     script=script + item.ContentText +' ';      
+    // });
+    
+    
+
+    await axios.post('/api/generate-audio',{
+      text:videoScriptData,
+      id:id
+    }) .then(resp => {
+      console.log(resp.data);
+      
+    })
+    setLoading(false);
+
+
+    
+    
+  }
 
   return (
     <div className="md:px-20">
