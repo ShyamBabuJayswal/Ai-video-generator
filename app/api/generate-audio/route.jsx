@@ -1,4 +1,6 @@
+import { storage } from "@/configs/FirebaseConfig";
 import textToSpeech  from "@google-cloud/text-to-speech";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { NextResponse } from "next/server";
 const fs = require('fs');
 const util = require('util');
@@ -10,6 +12,7 @@ const client = new textToSpeech.TextToSpeechClient({
 export async function POST(req){
 
   const {text,id} = await req.json();
+  const storageRef = ref(storage,'Ai-video-gen/'+id+'.mp3')
 
   const request = {
     input: {text: text},
@@ -21,12 +24,16 @@ export async function POST(req){
   
    const [response] = await client.synthesizeSpeech(request);
    
-   const writeFile = util.promisify(fs.writeFile);
-   await writeFile('output.mp3', response.audioContent, 'binary');
-   console.log('Audio content written to file: output.mp3');
+   const audioBuffer =Buffer.from(response.audioContent,'binary');
+   await uploadBytes(storageRef,audioBuffer,{contentType:'audio/mp3'})
+   const downloadUrl = await getDownloadURL(storageRef);
+   console.log(downloadUrl);
+   
+   
+   
  
    return NextResponse.json({
-    Result:'Success'
+    Result:downloadUrl
    });
 }
  
