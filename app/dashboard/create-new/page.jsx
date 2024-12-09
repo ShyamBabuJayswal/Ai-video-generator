@@ -10,12 +10,15 @@ import { v4 as uuidv4 } from 'uuid';
 
 const scriptData='It was a cold, dark night. The wind howled through the trees, sending shivers down the spines of those brave enough to venture outside. The leaves rustled in chaotic whispers, as if carrying secrets from the depths of the unknown.A lone figure walked cautiously along the deserted path, each step crunching against the frosted ground. Shadows danced under the pale moonlight, creating shapes that seemed almost alive.In the distance, the faint sound of a bell echoed, its eerie chime a reminder of something lost—or perhaps, something yet to come.'
 
+const FILE_URL ='https://firebasestorage.googleapis.com/v0/b/aigen-aed65.firebasestorage.app/o/Ai-video-gen%2F390bd8b0-c2f2-4e5e-b7a1-958695727fa4.mp3?alt=media&token=3ecb5e9f-4d72-4aad-b94a-47b51e434274'
+
 
 function CreateNew() {
   const [formData, setFormData] = useState({});
   const [loading,setLoading] = useState(false);
   const [videoScript,setVideoScript] = useState();
   const [audioFileUrl,setAudioFileUrl] = useState();
+  const [captions,setCaptions] = useState();
 
 
   const onHandleInputChange = (fieldName, fieldValue) => {
@@ -27,13 +30,10 @@ function CreateNew() {
   };
 
   const onCreateClickHandler = () => {
-    console.log("Form Data:", formData);
-    if (!formData.duration || !formData.topic || !formData.imageStyle) {
-      console.error("Please fill all the fields.");
-      return;
-    }
+    
     //  GetVideoScript();
-     GenerateAudioFile(scriptData);
+    //  GenerateAudioFile(scriptData);
+    GenerateAudioCaption(FILE_URL)
     
   };
 
@@ -71,11 +71,21 @@ function CreateNew() {
       
     })
     setLoading(false);
-
-
-    
-    
   }
+  const GenerateAudioCaption = async (fileUrl) => {
+    setLoading(true);
+   
+     await axios.post("/api/generate-captions", {
+        audioFileUrl: fileUrl,
+      }).then(resp => {
+        console.log(resp.data.result);
+        setCaptions(resp?.data?.result);
+        
+      })
+      
+    
+    setLoading(false);
+  };
 
   return (
     <div className="md:px-20">
