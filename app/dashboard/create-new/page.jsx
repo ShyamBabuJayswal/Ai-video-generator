@@ -11,6 +11,16 @@ import { v4 as uuidv4 } from 'uuid';
 const scriptData='It was a cold, dark night. The wind howled through the trees, sending shivers down the spines of those brave enough to venture outside. The leaves rustled in chaotic whispers, as if carrying secrets from the depths of the unknown.A lone figure walked cautiously along the deserted path, each step crunching against the frosted ground. Shadows danced under the pale moonlight, creating shapes that seemed almost alive.In the distance, the faint sound of a bell echoed, its eerie chime a reminder of something lost—or perhaps, something yet to come.'
 
 const FILE_URL ='https://firebasestorage.googleapis.com/v0/b/aigen-aed65.firebasestorage.app/o/Ai-video-gen%2F390bd8b0-c2f2-4e5e-b7a1-958695727fa4.mp3?alt=media&token=3ecb5e9f-4d72-4aad-b94a-47b51e434274'
+const videoSCRIPT = [
+  { 
+    "imagePrompt": "A majestic dragon flying over a medieval castle during sunset", 
+    "ContentText": "The dragon soared majestically, its wings spanning the fiery sky as the castle loomed in the distance."
+  },
+  { 
+    "imagePrompt": "A serene mountain landscape with a clear blue lake and pine trees", 
+    "ContentText": "The tranquil lake mirrored the towering mountains, embraced by a serene forest of evergreens." 
+  }
+]
 
 
 function CreateNew() {
@@ -19,6 +29,7 @@ function CreateNew() {
   const [videoScript,setVideoScript] = useState();
   const [audioFileUrl,setAudioFileUrl] = useState();
   const [captions,setCaptions] = useState();
+  const[imageList,setImageList]  = useState(); 
 
 
   const onHandleInputChange = (fieldName, fieldValue) => {
@@ -33,7 +44,8 @@ function CreateNew() {
     
     //  GetVideoScript();
     //  GenerateAudioFile(scriptData);
-    GenerateAudioCaption(FILE_URL)
+    // GenerateAudioCaption(FILE_URL)
+    GenerateImage();
     
   };
 
@@ -43,49 +55,89 @@ function CreateNew() {
 
     
       const result = await axios.post("/api/get-video-script", { 
-        prompt }).then(resp  => {
+        prompt:prompt }).then(resp  => {
+          console.log("EXE");
+          
       
       setVideoScript(resp.data.result)
-      GenerateAudioFile(resp.data.result);
+     
+      resp.data.result && GenerateAudioFile(resp.data.result)
     
         });
-    setLoading(false);
+   
   };
 
   const GenerateAudioFile = async (videoScriptData)   => {
     setLoading(true)
     let script ='';
 
-    const id = uuidv4()
-    // videoScriptData.forEach(item => {
-    //     script=script + item.ContentText +' ';      
-    // });
+    const id = uuidv4();
+
+    videoScriptData.forEach(item => {
+        script=script+item.ContentText +' ';      
+    });
     
     
 
     await axios.post('/api/generate-audio',{
-      text:videoScriptData,
+      text:script,
       id:id
     }) .then(resp => {
-      setAudioFileUrl(resp.data.result);
+      setAudioFileUrl(resp.data.result);//Get File Url
+      resp.data.result && GenerateAudioCaption(resp.data.result)
+     
       
     })
-    setLoading(false);
+    
   }
   const GenerateAudioCaption = async (fileUrl) => {
     setLoading(true);
+    console.log(fileUrl);
+    
    
      await axios.post("/api/generate-captions", {
         audioFileUrl: fileUrl,
       }).then(resp => {
         console.log(resp.data.result);
         setCaptions(resp?.data?.result);
+        GenerateImage();
         
       })
       
     
-    setLoading(false);
+      console.log(videoScript,captions,audioFileUrl);
+      
+   
   };
+
+  const GenerateImage = async () => {
+    setLoading(true);
+    try {
+      const images = await Promise.all(
+        videoSCRIPT.map(async (element) => {
+          const resp = await axios.post("/api/generate-image", { prompt: element?.imagePrompt });
+          console.log("Raw Response:", resp); // Debugging the whole response
+  
+          if (resp?.data?.result?.imageUrl) {
+            console.log("Frontend Response:", resp.data.result.imageUrl); // Image result log
+            return resp.data.result.imageUrl;
+          } else {
+            console.error("Error: No Result in Response");
+            return "Error: No Result";
+          }
+        })
+      );
+  
+      console.log("Generated Images:", images);
+      setImageList(images);
+    } catch (error) {
+      console.error("Error generating images:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
 
   return (
     <div className="md:px-20">
