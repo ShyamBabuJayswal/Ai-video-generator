@@ -110,32 +110,41 @@ function CreateNew() {
    
   };
 
+  // const GenerateImage = async () => {
+  //   let images =[];
+  //   videoSCRIPT.forEach(async(element) => {
+  //     await axios.post('/api/generate-image',{
+  //       prompt:element?.imagePrompt
+  //     }).then(resp => {
+  //       console.log(resp.data.result);
+  //       images.push(resp.data.result);
+        
+  //     })
+  //   })
+  //   console.log(images);
+  //   setImageList(images);
+  //   setLoading(false);
+    
+  // }
+
   const GenerateImage = async () => {
-    setLoading(true);
+  let images = [];
+  for (const element of videoSCRIPT) {
     try {
-      const images = await Promise.all(
-        videoSCRIPT.map(async (element) => {
-          const resp = await axios.post("/api/generate-image", { prompt: element?.imagePrompt });
-          console.log("Raw Response:", resp); // Debugging the whole response
-  
-          if (resp?.data?.result?.imageUrl) {
-            console.log("Frontend Response:", resp.data.result.imageUrl); // Image result log
-            return resp.data.result.imageUrl;
-          } else {
-            console.error("Error: No Result in Response");
-            return "Error: No Result";
-          }
-        })
-      );
-  
-      console.log("Generated Images:", images);
-      setImageList(images);
+      const resp = await axios.post('/api/generate-image', {
+        prompt: element?.imagePrompt,
+      });
+      images.push(resp.data.result);
     } catch (error) {
-      console.error("Error generating images:", error);
-    } finally {
-      setLoading(false);
+      console.error("Error generating image:", error);
     }
-  };
+  }
+  console.log(images);
+  setImageList(images);
+  setLoading(false);
+};
+
+   
   
 
 
