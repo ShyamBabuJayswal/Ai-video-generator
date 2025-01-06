@@ -128,22 +128,32 @@ function CreateNew() {
   // }
 
   const GenerateImage = async () => {
-  let images = [];
-  for (const element of videoSCRIPT) {
-    try {
-      const resp = await axios.post('/api/generate-image', {
-        prompt: element?.imagePrompt,
-      });
-      images.push(resp.data.result);
-    } catch (error) {
-      console.error("Error generating image:", error);
+    let images = [];
+    for (const element of videoSCRIPT) {
+      try {
+        const response = await axios.post("/api/generate-image", {
+          prompt: element.imagePrompt,
+        });
+  
+        // Ensure you push only valid results
+        if (response.data.success) {
+          images.push(response.data.result);
+        } else {
+          console.error("Failed to generate image:", response.data.message);
+        }
+      } catch (error) {
+        console.error("Error generating image:", error);
+      }
     }
-  }
-  console.log(images);
-  setImageList(images);
-  setLoading(false);
-};
-
+    
+    // Set the images and loading state
+    setImageList(images);
+    setLoading(false);
+  };
+  
+  
+       
+   
    
   
 
