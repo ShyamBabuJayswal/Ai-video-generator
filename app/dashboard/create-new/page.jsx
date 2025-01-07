@@ -110,49 +110,24 @@ function CreateNew() {
    
   };
 
-  // const GenerateImage = async () => {
-  //   let images =[];
-  //   videoSCRIPT.forEach(async(element) => {
-  //     await axios.post('/api/generate-image',{
-  //       prompt:element?.imagePrompt
-  //     }).then(resp => {
-  //       console.log(resp.data.result);
-  //       images.push(resp.data.result);
-        
-  //     })
-  //   })
-  //   console.log(images);
-  //   setImageList(images);
-  //   setLoading(false);
-    
-  // }
-
   const GenerateImage = async () => {
-    let images = [];
-    for (const element of videoSCRIPT) {
-      try {
-        const response = await axios.post("/api/generate-image", {
-          prompt: element.imagePrompt,
-        });
-  
-        // Ensure you push only valid results
-        if (response.data.success) {
-          images.push(response.data.result);
-        } else {
-          console.error("Failed to generate image:", response.data.message);
-        }
-      } catch (error) {
-        console.error("Error generating image:", error);
-      }
-    }
-    
-    // Set the images and loading state
+    let images =[];
+    videoSCRIPT.forEach(async(element) => {
+      await axios.post('/api/generate-image',{
+        prompt:element?.imagePrompt
+      }).then(resp => {
+        console.log(resp.data.result);
+        images.push(resp.data.result);
+        
+      })
+    })
+    console.log(images);
     setImageList(images);
     setLoading(false);
-  };
+    
+  }
+
   
-  
-       
    
    
   

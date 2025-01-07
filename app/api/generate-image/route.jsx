@@ -1,5 +1,10 @@
+import { storage } from "@/configs/FirebaseConfig";
+import axios from "axios";
+import { getDownloadURL, uploadString, ref } from "firebase/storage";
 import { NextResponse } from "next/server";
 import Replicate from "replicate";
+
+import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(req) {
   try {
@@ -33,18 +38,28 @@ export async function POST(req) {
       { input }
     );
 
-    // Validate the output
-    if (!output || !output[0]) {
-      return NextResponse.json(
-        { success: false, message: "No output returned from Replicate." },
-        { status: 500 }
-      );
-    }
+    // Convert image to base64
+    const base64Image = "data:image/png;base64," + await convertImage(output[0]);
 
-    // Return the first result as a JSON response
+
+    const fileName = `Ai-video-gen/${uuidv4()}.png`;
+    const storageRef = ref(storage, fileName);
+    
+
+
+  
+    await uploadString(storageRef, base64Image, "data_url");
+
+    
+     const downloadUrl = await getDownloadURL(storageRef);
+
+     console.log(downloadUrl);
+     
+
+    // Return the download URL
     return NextResponse.json({
       success: true,
-      result: output[0],
+      'result': downloadUrl,
     });
   } catch (error) {
     // Handle any error that occurs
@@ -58,3 +73,14 @@ export async function POST(req) {
     );
   }
 }
+
+const convertImage = async (imageUrl) => {
+  try {
+    const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
+    const base64Image = Buffer.from(response.data).toString("base64");
+    return base64Image;
+  } catch (e) {
+    console.log("Error", e);
+    throw new Error("Failed to convert image.");
+  }
+};
