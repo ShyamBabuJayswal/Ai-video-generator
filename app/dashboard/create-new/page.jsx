@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import SelectTopic from "./_components/SelectTopic";
 import SelectStyle from "./_components/SelectStyle";
 import SelectDuration from "./_components/SelectDuration";
@@ -7,20 +7,8 @@ import { Button } from "@/components/ui/button";
 import axios from "axios";
 import CustomLoading from "./_components/CustomLoading";
 import { v4 as uuidv4 } from 'uuid';
+import { VideoDataContext } from "@/app/_context/VideoDataContext";
 
-const scriptData='It was a cold, dark night. The wind howled through the trees, sending shivers down the spines of those brave enough to venture outside. The leaves rustled in chaotic whispers, as if carrying secrets from the depths of the unknown.A lone figure walked cautiously along the deserted path, each step crunching against the frosted ground. Shadows danced under the pale moonlight, creating shapes that seemed almost alive.In the distance, the faint sound of a bell echoed, its eerie chime a reminder of something lost—or perhaps, something yet to come.'
-
-const FILE_URL ='https://firebasestorage.googleapis.com/v0/b/aigen-aed65.firebasestorage.app/o/Ai-video-gen%2F390bd8b0-c2f2-4e5e-b7a1-958695727fa4.mp3?alt=media&token=3ecb5e9f-4d72-4aad-b94a-47b51e434274'
-const videoSCRIPT = [
-  { 
-    "imagePrompt": "A majestic dragon flying over a medieval castle during sunset", 
-    "ContentText": "The dragon soared majestically, its wings spanning the fiery sky as the castle loomed in the distance."
-  },
-  { 
-    "imagePrompt": "A serene mountain landscape with a clear blue lake and pine trees", 
-    "ContentText": "The tranquil lake mirrored the towering mountains, embraced by a serene forest of evergreens." 
-  }
-]
 
 
 function CreateNew() {
@@ -30,6 +18,7 @@ function CreateNew() {
   const [audioFileUrl,setAudioFileUrl] = useState();
   const [captions,setCaptions] = useState();
   const[imageList,setImageList]  = useState(); 
+  const {videoData,setVideoData}=useContext(VideoDataContext);
 
 
   const onHandleInputChange = (fieldName, fieldValue) => {
@@ -42,10 +31,10 @@ function CreateNew() {
 
   const onCreateClickHandler = () => {
     
-    //  GetVideoScript();
+     GetVideoScript();
     //  GenerateAudioFile(scriptData);
     // GenerateAudioCaption(FILE_URL)
-    GenerateImage();
+    // GenerateImage();
     
   };
 
@@ -54,18 +43,22 @@ function CreateNew() {
     const prompt = `Write a script to generate ${formData.duration} video on topic: ${formData.topic} along with AI image prompt in ${formData.imageStyle} format for each scene and give me result in JSON format with imagePrompt and ContentText as field`;
 
     
-      const result = await axios.post("/api/get-video-script", { 
-        prompt:prompt }).then(resp  => {
-          console.log("EXE");
-          
+      const resp= await axios.post("/api/get-video-script", { 
+        prompt:prompt })
+
+
+           
       
-      setVideoScript(resp.data.result)
+      setVideoScript(prev =>({
+        ...prev,
+        'videoScript':resp.data.result
+      }))
      
       resp.data.result && GenerateAudioFile(resp.data.result)
     
-        });
+       
    
-  };
+  }
 
   const GenerateAudioFile = async (videoScriptData)   => {
     setLoading(true)
@@ -79,53 +72,76 @@ function CreateNew() {
     
     
 
-    await axios.post('/api/generate-audio',{
+ const resp = await axios.post('/api/generate-audio',{
       text:script,
       id:id
-    }) .then(resp => {
-      setAudioFileUrl(resp.data.result);//Get File Url
-      resp.data.result && GenerateAudioCaption(resp.data.result)
+    }) ;
+    setVideoScript(prev =>({
+      ...prev,
+      'audioFileUrl':resp.data.result
+    }))
+   
+     setAudioFileUrl(resp.data.result);
+      
+    resp.data.result &&  GenerateAudioCaption(resp.data.result,videoScriptData)
      
       
-    })
+    
     
   }
-  const GenerateAudioCaption = async (fileUrl) => {
+  const GenerateAudioCaption = async (fileUrl,videoScriptData) => {
     setLoading(true);
     console.log(fileUrl);
     
    
-     await axios.post("/api/generate-captions", {
+   const resp=await axios.post("/api/generate-captions", {
         audioFileUrl: fileUrl,
-      }).then(resp => {
-        console.log(resp.data.result);
-        setCaptions(resp?.data?.result);
-        GenerateImage();
-        
       })
+        
+        setCaptions(resp?.data?.result);
+        setVideoScript(prev =>({
+          ...prev,
+          'captions':resp.data.result
+        }))
+        
+        resp.data.result && GenerateImage(videoScriptData);
+        
+    
       
     
-      console.log(videoScript,captions,audioFileUrl);
+     
       
-   
-  };
+   };
 
-  const GenerateImage = async () => {
+  const GenerateImage = async (videoScriptData) => {
     let images =[];
-    videoSCRIPT.forEach(async(element) => {
-      await axios.post('/api/generate-image',{
-        prompt:element?.imagePrompt
-      }).then(resp => {
-        console.log(resp.data.result);
-        images.push(resp.data.result);
+   
+    for(const element of videoScriptData){
+      try {
+        const resp=await axios.post('/api/generate-image',{
+          prompt:element.imagePrompt
+        });
+        console.log(resp.data.result)
+        images.push(resp.data.result)
+      } catch (error) {
+        console.log("Error:"+e);
         
-      })
-    })
-    console.log(images);
+      }
+    }
+    setVideoScript(prev =>({
+      ...prev,
+      'ImageList':resp.data.result
+    }))
+    
     setImageList(images);
     setLoading(false);
     
   }
+
+  useEffect(() => {
+    console.log(videoData);
+    
+  },[videoData])
 
   
    
