@@ -11,12 +11,17 @@ import { VideoDataContext } from "@/app/_context/VideoDataContext";
 import { VideoData } from "@/configs/schema";
 import { useUser } from "@clerk/nextjs";
 import PlayerDialog from "../_component/PlayerDialog";
+import { useRouter } from "next/router";
+
+
 
 
 
 
 function CreateNew() {
   const [formData, setFormData] = useState({});
+  const router = useRouter();
+
   const [loading,setLoading] = useState(false);
   const [videoScript,setVideoScript] = useState();
   const [audioFileUrl,setAudioFileUrl] = useState();

@@ -12,6 +12,7 @@ import RemotionVideo from './RemotionVideo';
 import { Button } from '@/components/ui/button';
 import { db } from '@/configs/db';
 import { VideoData } from '@/configs/schema';
+import { useRouter } from 'next/navigation';
   
 
 const PlayerDialog = ({playVideo,videoId}) => {
@@ -21,9 +22,11 @@ const PlayerDialog = ({playVideo,videoId}) => {
     const[videoData,setVideoData]=useState();
 
     const[durationInFrame,setDurationFrame]=useState(100);
+    const router = useRouter();
+    
 
      useEffect(() => {
-        setOpenDailog(playVideo)
+        setOpenDailog(!openDailog)
         videoId && GetVideoData()
      },[playVideo])
 
@@ -56,7 +59,7 @@ const PlayerDialog = ({playVideo,videoId}) => {
       }}
     />
     <div className='flex gap-10 mt-10'>
-        <Button variant="ghost">
+        <Button variant="ghost" onClick={()=>{router.replace('/dashboard');setOpenDailog(false)}} >
             Cancel
         </Button>
         <Button>
