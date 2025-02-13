@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { VideoDataContext } from "@/app/_context/VideoDataContext";
 import { VideoData } from "@/configs/schema";
 import { useUser } from "@clerk/nextjs";
+import PlayerDialog from "../_component/PlayerDialog";
 
 
 
@@ -22,7 +23,10 @@ function CreateNew() {
   const [captions,setCaptions] = useState();
   const[imageList,setImageList]  = useState(); 
   const {videoData,setVideoData}=useContext(VideoDataContext);
-  const {user} =useUser();
+  const [playVideo,setPlayVideo] =useState(true); 
+  const [videoId,setVideoId]=useState() 
+  const {user} =useUser(1);
+
 
 
   const onHandleInputChange = (fieldName, fieldValue) => {
@@ -163,6 +167,8 @@ const SaveVideoData = async(videoData) => {
     }).returning({
       id:VideoData?.id
     })
+    setVideoId(result[0].id)
+    setPlayVideo(true)
     console.log(result)
     setLoading(false);
 }
@@ -189,6 +195,7 @@ const SaveVideoData = async(videoData) => {
         </Button>
       </div>
       <CustomLoading loading={loading}/>
+      <PlayerDialog playVideo={playVideo} videoId={videoId}/>
     </div>
   );
 }
